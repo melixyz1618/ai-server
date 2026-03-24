@@ -150,3 +150,18 @@ app.get("/", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server çalışıyor: http://localhost:${PORT}`);
 });
+
+app.get("/offers", (req, res) => {
+
+  if (!fs.existsSync("offers.json")) {
+    return res.json([]);
+  }
+
+  try {
+    const data = JSON.parse(fs.readFileSync("offers.json", "utf-8"));
+    res.json(data);
+  } catch {
+    res.json([]);
+  }
+
+});
