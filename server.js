@@ -165,3 +165,55 @@ app.get("/offers", (req, res) => {
   }
 
 });
+
+import nodemailer from "nodemailer";
+
+const transporter = nodemailer.createTransport({
+  host: "smtp.melihsancar.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: "info@melihsancar.com",
+    pass: "BURAYA_MAIL_SIFRESI"
+  }
+});
+
+app.post("/send-mail", async (req, res) => {
+
+  const { email, name, details } = req.body;
+
+  try {
+
+    await transporter.sendMail({
+      from: '"Melih Sancar" <info@melihsancar.com>',
+      to: email,
+      subject: "Teklif Talebiniz Alındı",
+      html: `
+        <div style="font-family:sans-serif">
+          <h2>Merhaba ${name} 👋</h2>
+
+          <p>Talebiniz başarıyla bize ulaştı.</p>
+
+          <p><b>Proje Detayı:</b></p>
+          <p>${details}</p>
+
+          <br>
+
+          <p>En kısa sürede sizinle iletişime geçeceğim.</p>
+
+          <hr>
+
+          <p><b>Melih Sancar</b></p>
+          <p>Software Developer</p>
+        </div>
+      `
+    });
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error("MAIL HATA:", err);
+    res.status(500).json({ error: "Mail gönderilemedi" });
+  }
+
+});
