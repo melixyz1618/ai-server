@@ -99,7 +99,7 @@ app.post("/send-mail", async (req, res) => {
   try {
 
     await resend.emails.send({
-      from: "Melih Sancar <info@melihsancar.com>",
+      from: "onboarding@resend.dev",
       to: email,
       subject: "Talebiniz alındı",
       html: `<p>Merhaba ${name}, talebiniz alındı.</p>`
