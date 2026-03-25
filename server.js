@@ -20,12 +20,10 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-
 // =====================================================
 // 🔥 CHAT ENDPOINT
 // =====================================================
 app.post("/chat", async (req, res) => {
-
   const userMessage = req.body.message;
 
   if (!userMessage) {
@@ -33,7 +31,6 @@ app.post("/chat", async (req, res) => {
   }
 
   try {
-
     const response = await client.chat.completions.create({
       model: "gpt-5-mini",
       messages: [
@@ -77,26 +74,20 @@ Her cevap sonunda mutlaka aksiyon çağrısı yap.
     });
 
   } catch (err) {
-
     console.error("AI ERROR:", err.message);
-
     res.status(500).json({
       error: "AI hata verdi",
       detail: err.message
     });
   }
-
 });
-
 
 // =====================================================
 // 🔥 OFFER ENDPOINT
 // =====================================================
 app.post("/offer", (req, res) => {
-
   const data = req.body;
 
-  // 🔹 Basic validation
   if (!data.name || !data.phone) {
     return res.status(400).json({
       error: "Ad ve telefon zorunlu"
@@ -105,7 +96,6 @@ app.post("/offer", (req, res) => {
 
   let offers = [];
 
-  // 🔹 Dosya varsa oku (hata güvenli)
   if (fs.existsSync("offers.json")) {
     try {
       offers = JSON.parse(fs.readFileSync("offers.json", "utf-8"));
@@ -115,7 +105,6 @@ app.post("/offer", (req, res) => {
     }
   }
 
-  // 🔹 Yeni teklif ekle
   const newOffer = {
     ...data,
     createdAt: new Date().toISOString()
@@ -123,7 +112,6 @@ app.post("/offer", (req, res) => {
 
   offers.push(newOffer);
 
-  // 🔹 Kaydet
   try {
     fs.writeFileSync("offers.json", JSON.stringify(offers, null, 2));
   } catch (err) {
@@ -135,25 +123,58 @@ app.post("/offer", (req, res) => {
     success: true,
     message: "Teklif kaydedildi"
   });
+});
+
+// =====================================================
+// 🔥 MAIL ENDPOINT (ÇİFT GÖNDERİM)
+// =====================================================
+app.post("/send-mail", async (req, res) => {
+
+  const { email, name, details } = req.body;
+
+  try {
+
+    // ✅ 1. Müşteriye mail
+    await resend.emails.send({
+      from: "Melih Sancar <info@melihsancar.com>",
+      to: email,
+      subject: "Teklif Talebiniz Alındı",
+      html: `
+        <div style="font-family:sans-serif">
+          <h2>Merhaba ${name} 👋</h2>
+          <p>Talebiniz bize ulaştı.</p>
+          <p><b>Detay:</b> ${details}</p>
+        </div>
+      `
+    });
+
+    // ✅ 2. Sana bildirim maili
+    await resend.emails.send({
+      from: "Melih Sancar <info@melihsancar.com>",
+      to: "info@melihsancar.com",
+      subject: "Yeni Teklif Talebi 🚀",
+      html: `
+        <div style="font-family:sans-serif">
+          <h3>Yeni müşteri talebi</h3>
+          <p><b>İsim:</b> ${name}</p>
+          <p><b>Email:</b> ${email}</p>
+          <p><b>Detay:</b> ${details}</p>
+        </div>
+      `
+    });
+
+    res.json({ success: true });
+
+  } catch (error) {
+    console.error("MAIL ERROR:", error);
+    res.status(500).json({ error: "Mail gönderilemedi" });
+  }
 
 });
 
-
 // =====================================================
-// 🔥 HEALTH CHECK (opsiyonel ama önemli)
+// 🔥 GET OFFERS
 // =====================================================
-app.get("/", (req, res) => {
-  res.send("Server çalışıyor 🚀");
-});
-
-
-// =====================================================
-// 🚀 SERVER START
-// =====================================================
-app.listen(PORT, () => {
-  console.log(`Server çalışıyor: http://localhost:${PORT}`);
-});
-
 app.get("/offers", (req, res) => {
 
   if (!fs.existsSync("offers.json")) {
@@ -169,32 +190,16 @@ app.get("/offers", (req, res) => {
 
 });
 
-app.post("/send-mail", async (req, res) => {
+// =====================================================
+// 🔥 HEALTH CHECK
+// =====================================================
+app.get("/", (req, res) => {
+  res.send("Server çalışıyor 🚀");
+});
 
-  const { email, name, details } = req.body;
-
-  try {
-
-    const response = await resend.emails.send({
-      from: "Melih Sancar <info@melihsancar.com>",
-      to: email,
-      subject: "Teklif Talebiniz Alındı",
-      html: `
-        <div style="font-family:sans-serif">
-          <h2>Merhaba ${name} 👋</h2>
-          <p>Talebiniz bize ulaştı.</p>
-          <p><b>Detay:</b> ${details}</p>
-        </div>
-      `
-    });
-
-    console.log("MAIL OK:", response);
-
-    res.json({ success: true });
-
-  } catch (error) {
-    console.error("MAIL ERROR:", error);
-    res.status(500).json({ error: "Mail gönderilemedi" });
-  }
-
+// =====================================================
+// 🚀 SERVER START
+// =====================================================
+app.listen(PORT, () => {
+  console.log(`Server çalışıyor: http://localhost:${PORT}`);
 });
