@@ -176,7 +176,7 @@ app.post("/send-mail", async (req, res) => {
   try {
 
     const response = await resend.emails.send({
-      from: "onboarding@resend.dev",
+      from: "Melih Sancar <info@melihsancar.com>",
       to: email,
       subject: "Teklif Talebiniz Alındı",
       html: `
