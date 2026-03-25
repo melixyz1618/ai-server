@@ -107,7 +107,7 @@ app.post("/send-mail", async (req, res) => {
 
 
     await resend.emails.send({
-     from: "Melih Sancar <info@send.melihsancar.com>",
+     from: "Melih Sancar <info@melihsancar.com>",
       to: "info@melihsancar.com",
       subject: "Yeni müşteri",
       html: `<p>${name} - ${email}</p><p>${details}</p>`
@@ -119,7 +119,7 @@ app.post("/send-mail", async (req, res) => {
     console.error("MAIL ERROR:", error);
     res.status(500).json({ error: "Mail hatası" });
   }
-
+console.log("MAIL FROM:", "info@melihsancar.com");
 });
 
 
