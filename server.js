@@ -8,19 +8,8 @@ import mysql from "mysql2/promise";
 
 dotenv.config();
 
-// 🔹 DB CONNECTION (EN ÜSTTE)
-const db = await mysql.createPool({
-  import mysql from "mysql2/promise";
-
+// 🔹 DB CONNECTION (TEMİZ VE DOĞRU)
 const db = await mysql.createPool(process.env.DATABASE_URL);
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT,
-  ssl: {
-    rejectUnauthorized: false
-  }
-});
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
