@@ -105,6 +105,7 @@ app.post("/send-mail", async (req, res) => {
       html: `<p>Merhaba ${name}, talebiniz alındı.</p>`
     });
 
+
     await resend.emails.send({
       from: "Melih Sancar <info@melihsancar.com>",
       to: "info@melihsancar.com",
