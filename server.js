@@ -214,7 +214,7 @@ app.post("/send-mail", async (req, res) => {
 
     res.json({ success: true });
 
-catch (error) {
+}catch (error) {
   console.error("MAIL HATA DETAY:", error);
   res.status(500).json({ error: "Mail gönderilemedi" });
 }
