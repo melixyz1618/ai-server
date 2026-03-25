@@ -2,27 +2,33 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import OpenAI from "openai";
-import fs from "fs";
 import { Resend } from "resend";
 import mysql from "mysql2/promise";
 
 dotenv.config();
 
-// 🔹 DB CONNECTION (TEMİZ VE DOĞRU)
+// =====================================================
+// 🔹 DB CONNECTION
+// =====================================================
 const db = await mysql.createPool(process.env.DATABASE_URL);
 
+// =====================================================
+// 🔹 SERVICES
+// =====================================================
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
+
+// =====================================================
+// 🔹 APP INIT
+// =====================================================
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
-
-// 🔹 OpenAI
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
 
 
 // =====================================================
@@ -62,10 +68,9 @@ app.post("/chat", async (req, res) => {
 
 
 // =====================================================
-// 🔥 OFFER → DB KAYIT
+// 🔥 OFFER → DB
 // =====================================================
 app.post("/offer", async (req, res) => {
-
   const { name, email, phone, projectType, details } = req.body;
 
   if (!name || !phone) {
@@ -85,7 +90,6 @@ app.post("/offer", async (req, res) => {
     console.error("DB ERROR:", err);
     res.status(500).json({ error: "DB error" });
   }
-
 });
 
 
@@ -93,25 +97,38 @@ app.post("/offer", async (req, res) => {
 // 🔥 MAIL
 // =====================================================
 app.post("/send-mail", async (req, res) => {
-
   const { email, name, details } = req.body;
 
   try {
 
+    // 📩 MÜŞTERİYE GİDEN MAIL
     await resend.emails.send({
-      from: "onboarding@resend.dev",
+      from: "Melih Sancar <info@melihsancar.com>",
       to: email,
       subject: "Talebiniz alındı",
-      html: `<p>Merhaba ${name}, talebiniz alındı.</p>`
+      html: `
+        <h3>Merhaba ${name},</h3>
+        <p>Talebiniz başarıyla alınmıştır.</p>
+        <p>En kısa sürede sizinle iletişime geçeceğiz.</p>
+        <br/>
+        <strong>Melih Sancar</strong>
+      `
     });
 
-
+    // 📩 SANA GELEN MAIL (BİLDİRİM)
     await resend.emails.send({
-     from: "Melih Sancar <info@melihsancar.com>",
+      from: "Melih Sancar <info@melihsancar.com>",
       to: "info@melihsancar.com",
-      subject: "Yeni müşteri",
-      html: `<p>${name} - ${email}</p><p>${details}</p>`
+      subject: "Yeni müşteri talebi",
+      html: `
+        <h3>Yeni Talep Geldi</h3>
+        <p><strong>İsim:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Detay:</strong> ${details}</p>
+      `
     });
+
+    console.log("MAIL SENT FROM:", "info@melihsancar.com");
 
     res.json({ success: true });
 
@@ -119,22 +136,19 @@ app.post("/send-mail", async (req, res) => {
     console.error("MAIL ERROR:", error);
     res.status(500).json({ error: "Mail hatası" });
   }
-console.log("MAIL FROM:", "info@melihsancar.com");
 });
 
 
 // =====================================================
-// 🔥 GET OFFERS (DB)
+// 🔥 GET OFFERS
 // =====================================================
 app.get("/offers", async (req, res) => {
-
   try {
     const [rows] = await db.execute("SELECT * FROM offers ORDER BY id DESC");
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: "DB error" });
   }
-
 });
 
 
