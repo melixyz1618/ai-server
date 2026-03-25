@@ -215,3 +215,5 @@ app.post("/send-mail", async (req, res) => {
   }
 
 });
+
+console.log("MAIL_PASS:", process.env.MAIL_PASS);
