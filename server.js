@@ -169,21 +169,6 @@ app.get("/offers", (req, res) => {
 
 });
 
-import nodemailer from "nodemailer";
-
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: "melixyz@gmail.com",
-    pass: process.env.MAIL_PASS
-  },
-  tls: {
-    rejectUnauthorized: false
-  }
-});
-
 app.post("/send-mail", async (req, res) => {
 
   const { email, name, details } = req.body;
@@ -191,7 +176,7 @@ app.post("/send-mail", async (req, res) => {
   try {
 
     const response = await resend.emails.send({
-      from: "onboarding@resend.dev", // şimdilik bunu kullan
+      from: "onboarding@resend.dev",
       to: email,
       subject: "Teklif Talebiniz Alındı",
       html: `
