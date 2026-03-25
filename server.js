@@ -3,8 +3,11 @@ import cors from "cors";
 import dotenv from "dotenv";
 import OpenAI from "openai";
 import fs from "fs";
+import { Resend } from "resend";
 
 dotenv.config();
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const app = express();
 app.use(cors());
@@ -187,38 +190,26 @@ app.post("/send-mail", async (req, res) => {
 
   try {
 
-    await transporter.sendMail({
-      from: '"Melih Sancar" <melixyz@gmail.com>',
+    const response = await resend.emails.send({
+      from: "onboarding@resend.dev", // şimdilik bunu kullan
       to: email,
       subject: "Teklif Talebiniz Alındı",
       html: `
         <div style="font-family:sans-serif">
           <h2>Merhaba ${name} 👋</h2>
-
-          <p>Talebiniz başarıyla bize ulaştı.</p>
-
-          <p><b>Proje Detayı:</b></p>
-          <p>${details}</p>
-
-          <br>
-
-          <p>En kısa sürede sizinle iletişime geçeceğim.</p>
-
-          <hr>
-
-          <p><b>Melih Sancar</b></p>
-          <p>Software Developer</p>
+          <p>Talebiniz bize ulaştı.</p>
+          <p><b>Detay:</b> ${details}</p>
         </div>
       `
     });
 
+    console.log("MAIL OK:", response);
+
     res.json({ success: true });
 
-}catch (error) {
-  console.error("MAIL HATA DETAY:", error);
-  res.status(500).json({ error: "Mail gönderilemedi" });
-}
+  } catch (error) {
+    console.error("MAIL ERROR:", error);
+    res.status(500).json({ error: "Mail gönderilemedi" });
+  }
 
 });
-
-console.log("MAIL_PASS:", process.env.MAIL_PASS);
