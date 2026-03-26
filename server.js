@@ -166,3 +166,35 @@ app.get("/", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server çalışıyor: http://localhost:${PORT}`);
 });
+
+// 🔹 Ziyaret artır
+app.post("/visit", async (req, res) => {
+    try {
+        await db.query(`
+            UPDATE site_stats
+            SET total_visits = total_visits + 1
+            WHERE id = 1
+        `);
+
+        res.json({ success: true });
+
+    } catch (err) {
+        console.error("VISIT ERROR:", err);
+        res.status(500).json({ error: "visit error" });
+    }
+});
+
+// 🔹 Ziyaret sayısı getir
+app.get("/visit-count", async (req, res) => {
+    try {
+        const result = await db.query(`
+            SELECT total_visits FROM site_stats WHERE id = 1
+        `);
+
+        res.json({ count: result.rows[0].total_visits });
+
+    } catch (err) {
+        console.error("COUNT ERROR:", err);
+        res.status(500).json({ error: "count error" });
+    }
+});
