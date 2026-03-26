@@ -221,25 +221,21 @@ app.post("/visit", async (req, res) => {
 });
 
 // 🔥 TCMB KUR API
-<script>
-async function loadMarket() {
+app.get("/market", async (req, res) => {
     try {
-        const res = await fetch("https://ai-server-ewqi.onrender.com/market");
-        const data = await res.json();
+        const response = await fetch("https://www.tcmb.gov.tr/kurlar/today.xml");
+        const xml = await response.text();
 
-        document.getElementById("usd").innerText = data.usd.toFixed(2) + " ₺";
-        document.getElementById("eur").innerText = data.eur.toFixed(2) + " ₺";
+        const usd = xml.match(/CurrencyCode="USD"[\s\S]*?<ForexSelling>(.*?)<\/ForexSelling>/)[1];
+        const eur = xml.match(/CurrencyCode="EUR"[\s\S]*?<ForexSelling>(.*?)<\/ForexSelling>/)[1];
 
-        const goldRes = await fetch("https://api.gold-api.com/price/XAU");
-        const goldData = await goldRes.json();
-
-        const gram = goldData.price / 31.1;
-        document.getElementById("gold").innerText = gram.toFixed(2) + " $";
+        res.json({
+            usd: parseFloat(usd),
+            eur: parseFloat(eur)
+        });
 
     } catch (err) {
-        console.error("MARKET ERROR:", err);
+        console.error("TCMB ERROR:", err);
+        res.status(500).json({ error: "Kur alınamadı" });
     }
-}
-
-loadMarket();
-</script>
+});
