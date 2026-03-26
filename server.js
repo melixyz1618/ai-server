@@ -219,3 +219,23 @@ app.post("/visit", async (req, res) => {
         res.status(500).json({ error: "visit error" });
     }
 });
+
+// 🔥 TCMB KUR API
+app.get("/market", async (req, res) => {
+    try {
+        const response = await fetch("https://www.tcmb.gov.tr/kurlar/today.xml");
+        const xml = await response.text();
+
+        const usd = xml.match(/CurrencyCode="USD"[\s\S]*?<ForexSelling>(.*?)<\/ForexSelling>/)[1];
+        const eur = xml.match(/CurrencyCode="EUR"[\s\S]*?<ForexSelling>(.*?)<\/ForexSelling>/)[1];
+
+        res.json({
+            usd: parseFloat(usd),
+            eur: parseFloat(eur)
+        });
+
+    } catch (err) {
+        console.error("TCMB ERROR:", err);
+        res.status(500).json({ error: "Kur verisi alınamadı" });
+    }
+});
