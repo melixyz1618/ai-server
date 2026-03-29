@@ -96,7 +96,7 @@ app.post("/chat", async (req, res) => {
     console.error("AI ERROR:", err.message);
     res.status(500).json({ error: "AI hata" });
   }
-});
+}
 
 
 // =====================================================
