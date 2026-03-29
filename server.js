@@ -32,7 +32,7 @@ const PORT = process.env.PORT || 3000;
 // =====================================================
 // 🔥 CHAT
 // =====================================================
-aapp.post("/chat", async (req, res) => {
+app.post("/chat", async (req, res) => {
   const userMessage = req.body.message;
 
   if (!userMessage) {
