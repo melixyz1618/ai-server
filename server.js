@@ -88,11 +88,17 @@ Cevap formatı:
 Kural:
 - Her konuşmanın sonunda kullanıcıdan isim ve telefon iste
 - Ama bunu doğal şekilde yap
+
 Eğer kullanıcı proje anlatıyorsa:
 - Net fiyat aralığı ver
 - Süre ver
 - Sonra şu cümleyi kur:
 "İstersen hemen başlayalım, adını ve telefonunu yaz, seni arayalım."
+
+- Her mesajda telefon isteme
+- Sadece kullanıcı hazır olduğunda iletişim iste
+- Fiyat çelişkisi yaratma
+- Önce MVP sonra gelişmiş paket sun
 `
         },
         {
