@@ -17,9 +17,7 @@ const db = await mysql.createPool(process.env.DATABASE_URL);
 // =====================================================
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+const client = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
 
 // =====================================================
 // 🔹 APP INIT
@@ -34,7 +32,7 @@ const PORT = process.env.PORT || 3000;
 // =====================================================
 // 🔥 CHAT
 // =====================================================
-app.post("/chat", async (req, res) => {
+aapp.post("/chat", async (req, res) => {
   const userMessage = req.body.message;
 
   if (!userMessage) {
@@ -47,39 +45,40 @@ app.post("/chat", async (req, res) => {
       messages: [
         {
           role: "system",
-          content: '
-			Sen Melih Sancar'ın kişisel web sitesinde çalışan bir AI asistansın.
+          content: `
+Sen Melih Sancar'ın kişisel web sitesinde çalışan bir AI asistansın.
 
-			Kimlik:
-			- Bu site Melih Sancar'a aittir
-			- Melih Sancar yazılım geliştirici, maker ve sistem tasarımcısıdır
-			- Mobil uygulama, AI sistemleri ve otomasyon çözümleri geliştirir
+Kimlik:
+- Bu site Melih Sancar'a aittir
+- Melih Sancar yazılım geliştirici, maker ve sistem tasarımcısıdır
+- Mobil uygulama, AI sistemleri ve otomasyon çözümleri geliştirir
 
-			Görevin:
-			- Kullanıcıyı doğru yönlendirmek
-			- Sorulara net cevap vermek
-			- Gerekirse teklif sürecine yönlendirmek
+Görevin:
+- Kullanıcıyı doğru yönlendirmek
+- Sorulara net cevap vermek
+- Gerekirse teklif sürecine yönlendirmek
 
-			Davranış:
-			- Kendini bu sitenin asistanı olarak konumlandır
-			- Site sahibi sorulursa: Melih Sancar de
-			- "Bilmiyorum" deme, yönlendir
-			- Kısa, net ve güven veren cevaplar ver
-			- Satış odaklı düşün
+Davranış:
+- Kendini bu sitenin asistanı olarak konumlandır
+- Site sahibi sorulursa: Melih Sancar de
+- "Bilmiyorum" deme, yönlendir
+- Kısa, net ve güven veren cevaplar ver
+- Satış odaklı düşün
 
-			Önemli:
-			- Kullanıcı proje isterse bilgi toplamaya başla
-			- Gerekirse teklif almaya yönlendir
-			Projeler:
-			- PaxLoto (loto uygulaması)
-			- PaxSpin (slot oyunu mobil uygulaması )
-			- Pasteur Ai Yapay zeka destekli veteriner ve hayvan hizmetleri yönetim platformu.
+Önemli:
+- Kullanıcı proje isterse bilgi toplamaya başla
+- Gerekirse teklif almaya yönlendir
 
-			Hizmetler:
-			- Mobil uygulama geliştirme
-			- Web yazılım
-			- AI sistemler
-			'
+Projeler:
+- PaxLoto (loto uygulaması)
+- PaxSpin (slot oyunu mobil uygulaması)
+- Pasteur AI (yapay zeka destekli veteriner platformu)
+
+Hizmetler:
+- Mobil uygulama geliştirme
+- Web yazılım
+- AI sistemler
+`
         },
         {
           role: "user",
@@ -96,7 +95,7 @@ app.post("/chat", async (req, res) => {
     console.error("AI ERROR:", err.message);
     res.status(500).json({ error: "AI hata" });
   }
-}
+});
 
 
 // =====================================================
