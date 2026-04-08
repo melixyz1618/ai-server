@@ -282,23 +282,6 @@ app.get("/visit-count", async (req, res) => {
     }
 });
 
-
-app.post("/visit", async (req, res) => {
-    try {
-        await db.query(`
-            UPDATE site_stats
-            SET total_visits = total_visits + 1
-            WHERE id = 1
-        `);
-
-        res.json({ success: true });
-
-    } catch (err) {
-        console.error("VISIT ERROR:", err);
-        res.status(500).json({ error: "visit error" });
-    }
-});
-
 // 🔥 TCMB KUR API
 app.get("/market", async (req, res) => {
     try {
