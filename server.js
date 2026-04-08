@@ -144,13 +144,24 @@ app.post("/offer", async (req, res) => {
         message: "Çok hızlı tekrar gönderim" 
       });
     }
+	
+// 🔥 SON ID AL
+const [last] = await db.execute(
+  "SELECT id FROM offers ORDER BY id DESC LIMIT 1"
+);
 
+const nextId = last.length ? last[0].id + 1 : 1;
+
+// 🎯 OFFER NO
+const year = new Date().getFullYear();
+const offerNo = `TLP-${year}-${String(nextId).padStart(5,"0")}`;
     // 🔥 INSERT
     await db.execute(
-      `INSERT INTO offers (name, email, phone, project_type, details)
-       VALUES (?, ?, ?, ?, ?)`,
-      [name, email, phone, projectType, details]
-    );
+		`INSERT INTO offers 
+		(name, email, phone, project_type, details, offer_no)
+		VALUES (?, ?, ?, ?, ?, ?)`,
+		[name, email, phone, projectType, details, offerNo]
+	);
 
     res.json({ success: true });
 
