@@ -307,3 +307,38 @@ app.get("/market", async (req, res) => {
         res.status(500).json({ error: "Kur alınamadı" });
     }
 });
+
+// 🔥 DELETE OFFER
+app.delete("/offers/:id", async (req, res) => {
+    try {
+        const id = req.params.id;
+
+        await db.execute("DELETE FROM offers WHERE id = ?", [id]);
+
+        res.json({ success: true });
+
+    } catch (err) {
+        console.error("DELETE ERROR:", err);
+        res.status(500).json({ error: "delete error" });
+    }
+});
+
+
+// 🔥 STATUS UPDATE (tamamlandı vs)
+app.put("/offers/:id", async (req, res) => {
+    try {
+        const id = req.params.id;
+        const { status } = req.body;
+
+        await db.execute(
+            "UPDATE offers SET status = ? WHERE id = ?",
+            [status, id]
+        );
+
+        res.json({ success: true });
+
+    } catch (err) {
+        console.error("UPDATE ERROR:", err);
+        res.status(500).json({ error: "update error" });
+    }
+});
