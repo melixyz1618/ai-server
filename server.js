@@ -163,7 +163,7 @@ const offerNo = `TLP-${year}-${String(nextId).padStart(5,"0")}`;
 		[name, email, phone, projectType, details, offerNo]
 	);
 
-    res.json({ success: true });
+    res.json({ success: true, offerNo });
 
   } catch (err) {
     console.error("DB ERROR:", err);
