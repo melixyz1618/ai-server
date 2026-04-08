@@ -130,6 +130,22 @@ app.post("/offer", async (req, res) => {
   }
 
   try {
+
+    // 🔥 DUPLICATE KONTROL (30 saniye)
+    const [rows] = await db.execute(`
+      SELECT * FROM offers 
+      WHERE phone = ? 
+      AND created_at > NOW() - INTERVAL 30 SECOND
+    `, [phone]);
+
+    if (rows.length > 0) {
+      return res.json({ 
+        success: false, 
+        message: "Çok hızlı tekrar gönderim" 
+      });
+    }
+
+    // 🔥 INSERT
     await db.execute(
       `INSERT INTO offers (name, email, phone, project_type, details)
        VALUES (?, ?, ?, ?, ?)`,
