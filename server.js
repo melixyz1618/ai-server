@@ -176,7 +176,7 @@ const offerNo = `TLP-${year}-${String(nextId).padStart(5,"0")}`;
 // 🔥 MAIL
 // =====================================================
 app.post("/send-mail", async (req, res) => {
-  const { email, name, details } = req.body;
+  const { email, name, details, offerNo } = req.body;
 
   try {
 
@@ -188,6 +188,11 @@ app.post("/send-mail", async (req, res) => {
       html: `
         <h3>Merhaba ${name},</h3>
         <p>Talebiniz başarıyla alınmıştır.</p>
+        
+        <p style="font-size:16px;">
+          <strong>Talep Numaranız:</strong> ${offerNo}
+        </p>
+
         <p>En kısa sürede sizinle iletişime geçeceğiz.</p>
         <br/>
         <strong>Melih Sancar</strong>
@@ -201,13 +206,12 @@ app.post("/send-mail", async (req, res) => {
       subject: "Yeni müşteri talebi",
       html: `
         <h3>Yeni Talep Geldi</h3>
+        <p><strong>Talep No:</strong> ${offerNo}</p>
         <p><strong>İsim:</strong> ${name}</p>
         <p><strong>Email:</strong> ${email}</p>
         <p><strong>Detay:</strong> ${details}</p>
       `
     });
-
-    console.log("MAIL SENT FROM:", "info@melihsancar.com");
 
     res.json({ success: true });
 
