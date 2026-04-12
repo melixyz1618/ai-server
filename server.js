@@ -442,16 +442,9 @@ app.post("/track-visit", checkBlockedIP, async (req, res) => {
 
         await db.execute(`
             INSERT INTO visitors (uid, ip, user_agent, browser, device, country, city, last_seen)
-            VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
-			ON DUPLICATE KEY UPDATE
-				ip = VALUES(ip),
-				user_agent = VALUES(user_agent),
-				browser = VALUES(browser),
-				device = VALUES(device),
-				country = VALUES(country),
-				city = VALUES(city),
-				last_seen = NOW();
-        `, [uid, ip, userAgent, browser, device, country, city]);
+			VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+			ON DUPLICATE KEY UPDATE last_seen = NOW()
+		`, [uid, ip, userAgent, browser, device, country, city]);
 
         res.json({ success: true });
 
@@ -540,6 +533,10 @@ app.post("/heartbeat", async (req, res) => {
     try {
         const { uid } = req.body;
 
+        if (!uid) {
+            return res.status(400).json({ error: "uid boş" });
+        }
+
         await db.execute(`
             UPDATE visitors
             SET last_seen = NOW()
@@ -549,7 +546,7 @@ app.post("/heartbeat", async (req, res) => {
         res.json({ success: true });
 
     } catch (err) {
-        console.error(err);
+        console.error("heartbeat error:", err);
         res.status(500).json({ error: "heartbeat error" });
     }
 });
