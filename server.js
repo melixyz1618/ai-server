@@ -35,6 +35,24 @@ function authMiddleware(req, res, next) {
     }
 }
 
+async function checkBlockedIP(req, res, next) {
+    const ip =
+        (req.headers['x-forwarded-for'] || '').split(',')[0].trim() ||
+        req.socket.remoteAddress ||
+        req.ip;
+
+    const [rows] = await db.execute(
+        "SELECT * FROM blocked_ips WHERE ip = ?",
+        [ip]
+    );
+
+    if (rows.length > 0) {
+        return res.status(403).send("Blocked");
+    }
+
+    next();
+}
+
 dotenv.config();
 
 // =====================================================
@@ -391,7 +409,7 @@ app.put("/offers/:id", authMiddleware, async (req, res) => {
     }
 });
 
-app.post("/track-visit", async (req, res) => {
+app.post("/track-visit", checkBlockedIP, async (req, res) => {
     try {
         const { uid } = req.body;
 
@@ -524,4 +542,16 @@ app.post("/heartbeat", async (req, res) => {
         console.error(err);
         res.status(500).json({ error: "heartbeat error" });
     }
+});
+// 🧹 TÜM VERİYİ SİL
+app.delete("/admin/clear-stats", authMiddleware, async (req, res) => {
+    await pool.query("DELETE FROM visits");
+    res.json({ success: true });
+});
+
+// 🚫 IP ENGELLE
+app.post("/admin/block-ip", authMiddleware, async (req, res) => {
+    const { ip } = req.body;
+    await pool.query("INSERT INTO blocked_ips(ip) VALUES($1)", [ip]);
+    res.json({ success: true });
 });
