@@ -412,7 +412,9 @@ app.put("/offers/:id", authMiddleware, async (req, res) => {
 app.post("/track-visit", checkBlockedIP, async (req, res) => {
     try {
         const { uid } = req.body;
-
+		if (!uid) {
+			return res.status(400).json({ error: "uid boş olamaz" });
+        }
         const ip =
             (req.headers['x-forwarded-for'] || '').split(',')[0].trim() ||
             req.socket.remoteAddress ||
