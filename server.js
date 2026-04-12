@@ -545,7 +545,7 @@ app.post("/heartbeat", async (req, res) => {
 });
 // 🧹 TÜM VERİYİ SİL
 app.delete("/admin/clear-stats", authMiddleware, async (req, res) => {
-    await pool.query("DELETE FROM visits");
+    await pool.query("DELETE FROM visitors");
     res.json({ success: true });
 });
 
