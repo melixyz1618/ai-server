@@ -4,6 +4,19 @@ import dotenv from "dotenv";
 import OpenAI from "openai";
 import { Resend } from "resend";
 import mysql from "mysql2/promise";
+import speakeasy from "speakeasy";
+import QRCode from "qrcode";
+
+// SADECE BİR KERE ÇALIŞTIR
+const secret = speakeasy.generateSecret({
+    name: "MelihSancarAdmin"
+});
+
+console.log("SECRET:", secret.base32);
+
+QRCode.toDataURL(secret.otpauth_url, (err, data_url) => {
+    console.log("QR:", data_url);
+});
 
 dotenv.config();
 
