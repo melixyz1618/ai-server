@@ -4,19 +4,53 @@ import dotenv from "dotenv";
 import OpenAI from "openai";
 import { Resend } from "resend";
 import mysql from "mysql2/promise";
-import speakeasy from "speakeasy";
-import QRCode from "qrcode";
+import jwt from "jsonwebtoken";
 
-// SADECE BİR KERE ÇALIŞTIR
-const secret = speakeasy.generateSecret({
-    name: "MelihSancarAdmin"
+const ADMIN_SECRET = "BURAYA_KAYDETTİĞİN_SECRET";
+const JWT_SECRET = "super-secret-key";
+
+app.post("/admin-login", (req, res) => {
+    const { token } = req.body;
+
+    const verified = speakeasy.totp({
+        secret: ADMIN_SECRET,
+        encoding: "base32",
+        token
+    });
+
+    if (!verified) {
+        return res.status(401).json({ success: false });
+    }
+
+    const jwtToken = jwt.sign({ admin: true }, JWT_SECRET, {
+        expiresIn: "2h"
+    });
+
+    res.json({ success: true, token: jwtToken });
 });
 
-console.log("SECRET:", secret.base32);
+function authMiddleware(req, res, next) {
+    const authHeader = req.headers.authorization;
 
-QRCode.toDataURL(secret.otpauth_url, (err, data_url) => {
-    console.log("QR:", data_url);
-});
+    if (!authHeader) {
+        return res.status(403).json({ error: "No token" });
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+
+        if (!decoded.admin) {
+            return res.status(403).json({ error: "Not admin" });
+        }
+
+        next();
+
+    } catch {
+        return res.status(403).json({ error: "Invalid token" });
+    }
+}
 
 dotenv.config();
 
@@ -320,7 +354,7 @@ app.get("/market", async (req, res) => {
 });
 
 // 🔥 DELETE OFFER
-app.delete("/offers/:id", async (req, res) => {
+app.delete("/offers/:id", authMiddleware, async (req, res) => {
     try {
         const id = req.params.id;
 
@@ -336,7 +370,7 @@ app.delete("/offers/:id", async (req, res) => {
 
 
 // 🔥 STATUS UPDATE (tamamlandı vs)
-app.put("/offers/:id", async (req, res) => {
+app.put("/offers/:id", authMiddleware, async (req, res) => {
     try {
         const id = req.params.id;
         const { status } = req.body;
@@ -397,7 +431,7 @@ app.post("/track-visit", async (req, res) => {
 });
 
 // 🔥 günlük ziyaret
-app.get("/stats/daily", async (req, res) => {
+app.get("/stats/daily", authMiddleware, async (req, res) => {
     const [rows] = await db.execute(`
         SELECT DATE(created_at) as date, COUNT(*) as total
         FROM visitors
@@ -409,7 +443,7 @@ app.get("/stats/daily", async (req, res) => {
 });
 
 // 🔥 browser dağılım
-app.get("/stats/browser", async (req, res) => {
+app.get("/stats/browser", authMiddleware, async (req, res) => {
     const [rows] = await db.execute(`
         SELECT browser, COUNT(*) as total
         FROM visitors
@@ -419,7 +453,7 @@ app.get("/stats/browser", async (req, res) => {
 });
 
 // 🔥 ülke
-app.get("/stats/country", async (req, res) => {
+app.get("/stats/country", authMiddleware, async (req, res) => {
     const [rows] = await db.execute(`
         SELECT country, COUNT(*) as total
         FROM visitors
@@ -439,7 +473,7 @@ app.get("/online", (req, res) => {
     res.json({ online: onlineUsers });
 });
 
-app.get("/stats/city", async (req, res) => {
+app.get("/stats/city", authMiddleware, async (req, res) => {
     const [rows] = await db.execute(`
         SELECT city, COUNT(*) as total
         FROM visitors
@@ -460,7 +494,7 @@ app.get("/stats/online", async (req, res) => {
     res.json(rows[0]);
 });
 
-app.get("/stats/recent", async (req, res) => {
+app.get("/stats/recent", authMiddleware, async (req, res) => {
     const [rows] = await db.execute(`
         SELECT ip, browser, city, country, created_at
         FROM visitors
