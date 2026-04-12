@@ -442,3 +442,25 @@ app.get("/stats/city", async (req, res) => {
     `);
     res.json(rows);
 });
+
+app.get("/stats/online", async (req, res) => {
+    const [rows] = await db.execute(`
+        SELECT COUNT(*) as total 
+        FROM visitors 
+        WHERE created_at > NOW() - INTERVAL 5 MINUTE
+    `);
+
+    res.json(rows[0]);
+});
+
+app.get("/stats/recent", async (req, res) => {
+    const [rows] = await db.execute(`
+        SELECT ip, browser, city, country, created_at
+        FROM visitors
+        ORDER BY created_at DESC
+        LIMIT 10
+    `);
+
+    res.json(rows);
+});
+
