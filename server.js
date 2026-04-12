@@ -343,43 +343,37 @@ app.put("/offers/:id", async (req, res) => {
 
 app.post("/track-visit", async (req, res) => {
     try {
+        const { uid } = req.body;
+
         const ip =
-			(req.headers['x-forwarded-for'] || '').split(',')[0].trim() ||
-			req.socket.remoteAddress ||
-			req.ip;
+            (req.headers['x-forwarded-for'] || '').split(',')[0].trim() ||
+            req.socket.remoteAddress ||
+            req.ip;
 
         const userAgent = req.headers['user-agent'];
 
-        // basit browser parse
         let browser = "Unknown";
         if (userAgent.includes("Chrome") && !userAgent.includes("Edg")) browser = "Chrome";
-		else if (userAgent.includes("Firefox")) browser = "Firefox";
-		else if (userAgent.includes("Safari") && !userAgent.includes("Chrome")) browser = "Safari";
+        else if (userAgent.includes("Firefox")) browser = "Firefox";
+        else if (userAgent.includes("Safari") && !userAgent.includes("Chrome")) browser = "Safari";
 
-        // cihaz
         let device = "Desktop";
         if (/mobile/i.test(userAgent)) device = "Mobile";
 
-        // 🌍 IP GEO (ücretsiz API)
         let country = "Unknown";
         let city = "Unknown";
 
         try {
-            const controller = new AbortController();
-			setTimeout(() => controller.abort(), 2000);
-
-			const geo = await fetch(`http://ip-api.com/json/${ip}`, {
-				signal: controller.signal
-			});
+            const geo = await fetch(`http://ip-api.com/json/${ip}`);
             const geoData = await geo.json();
             country = geoData.country;
             city = geoData.city;
         } catch {}
 
         await db.execute(`
-            INSERT INTO visitors (ip, user_agent, browser, device, country, city)
-            VALUES (?, ?, ?, ?, ?, ?)
-        `, [ip, userAgent, browser, device, country, city]);
+            INSERT INTO visitors (uid, ip, user_agent, browser, device, country, city, last_seen)
+            VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+        `, [uid, ip, userAgent, browser, device, country, city]);
 
         res.json({ success: true });
 
@@ -445,9 +439,9 @@ app.get("/stats/city", async (req, res) => {
 
 app.get("/stats/online", async (req, res) => {
     const [rows] = await db.execute(`
-        SELECT COUNT(*) as total 
-        FROM visitors 
-        WHERE created_at > NOW() - INTERVAL 5 MINUTE
+        SELECT COUNT(DISTINCT uid) as total
+        FROM visitors
+        WHERE last_seen > NOW() - INTERVAL 30 SECOND
     `);
 
     res.json(rows[0]);
@@ -464,3 +458,20 @@ app.get("/stats/recent", async (req, res) => {
     res.json(rows);
 });
 
+app.post("/heartbeat", async (req, res) => {
+    try {
+        const { uid } = req.body;
+
+        await db.execute(`
+            UPDATE visitors
+            SET last_seen = NOW()
+            WHERE uid = ?
+        `, [uid]);
+
+        res.json({ success: true });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "heartbeat error" });
+    }
+});
