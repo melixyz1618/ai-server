@@ -5,29 +5,12 @@ import OpenAI from "openai";
 import { Resend } from "resend";
 import mysql from "mysql2/promise";
 import jwt from "jsonwebtoken";
+import speakeasy from "speakeasy";
 
 const ADMIN_SECRET = "BURAYA_KAYDETTİĞİN_SECRET";
 const JWT_SECRET = "super-secret-key";
 
-app.post("/admin-login", (req, res) => {
-    const { token } = req.body;
 
-    const verified = speakeasy.totp({
-        secret: ADMIN_SECRET,
-        encoding: "base32",
-        token
-    });
-
-    if (!verified) {
-        return res.status(401).json({ success: false });
-    }
-
-    const jwtToken = jwt.sign({ admin: true }, JWT_SECRET, {
-        expiresIn: "2h"
-    });
-
-    res.json({ success: true, token: jwtToken });
-});
 
 function authMiddleware(req, res, next) {
     const authHeader = req.headers.authorization;
@@ -72,6 +55,26 @@ const client = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+app.post("/admin-login", (req, res) => {
+    const { token } = req.body;
+
+    const verified = speakeasy.totp({
+        secret: ADMIN_SECRET,
+        encoding: "base32",
+        token
+    });
+
+    if (!verified) {
+        return res.status(401).json({ success: false });
+    }
+
+    const jwtToken = jwt.sign({ admin: true }, JWT_SECRET, {
+        expiresIn: "2h"
+    });
+
+    res.json({ success: true, token: jwtToken });
+});
 
 const PORT = process.env.PORT || 3000;
 
