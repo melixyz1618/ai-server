@@ -340,3 +340,105 @@ app.put("/offers/:id", async (req, res) => {
         res.status(500).json({ error: "update error" });
     }
 });
+
+app.post("/track-visit", async (req, res) => {
+    try {
+        const ip =
+			(req.headers['x-forwarded-for'] || '').split(',')[0].trim() ||
+			req.socket.remoteAddress ||
+			req.ip;
+
+        const userAgent = req.headers['user-agent'];
+
+        // basit browser parse
+        let browser = "Unknown";
+        if (userAgent.includes("Chrome") && !userAgent.includes("Edg")) browser = "Chrome";
+		else if (userAgent.includes("Firefox")) browser = "Firefox";
+		else if (userAgent.includes("Safari") && !userAgent.includes("Chrome")) browser = "Safari";
+
+        // cihaz
+        let device = "Desktop";
+        if (/mobile/i.test(userAgent)) device = "Mobile";
+
+        // 🌍 IP GEO (ücretsiz API)
+        let country = "Unknown";
+        let city = "Unknown";
+
+        try {
+            const controller = new AbortController();
+			setTimeout(() => controller.abort(), 2000);
+
+			const geo = await fetch(`http://ip-api.com/json/${ip}`, {
+				signal: controller.signal
+			});
+            const geoData = await geo.json();
+            country = geoData.country;
+            city = geoData.city;
+        } catch {}
+
+        await db.execute(`
+            INSERT INTO visitors (ip, user_agent, browser, device, country, city)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `, [ip, userAgent, browser, device, country, city]);
+
+        res.json({ success: true });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "track error" });
+    }
+});
+
+// 🔥 günlük ziyaret
+app.get("/stats/daily", async (req, res) => {
+    const [rows] = await db.execute(`
+        SELECT DATE(created_at) as date, COUNT(*) as total
+        FROM visitors
+        GROUP BY DATE(created_at)
+        ORDER BY date ASC
+        LIMIT 7
+    `);
+    res.json(rows);
+});
+
+// 🔥 browser dağılım
+app.get("/stats/browser", async (req, res) => {
+    const [rows] = await db.execute(`
+        SELECT browser, COUNT(*) as total
+        FROM visitors
+        GROUP BY browser
+    `);
+    res.json(rows);
+});
+
+// 🔥 ülke
+app.get("/stats/country", async (req, res) => {
+    const [rows] = await db.execute(`
+        SELECT country, COUNT(*) as total
+        FROM visitors
+        GROUP BY country
+    `);
+    res.json(rows);
+});
+
+let onlineUsers = 0;
+
+app.post("/online", (req, res) => {
+    onlineUsers++;
+    res.json({ online: onlineUsers });
+});
+
+app.get("/online", (req, res) => {
+    res.json({ online: onlineUsers });
+});
+
+app.get("/stats/city", async (req, res) => {
+    const [rows] = await db.execute(`
+        SELECT city, COUNT(*) as total
+        FROM visitors
+        GROUP BY city
+        ORDER BY total DESC
+        LIMIT 10
+    `);
+    res.json(rows);
+});
