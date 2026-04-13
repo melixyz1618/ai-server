@@ -520,10 +520,17 @@ app.get("/stats/online", async (req, res) => {
 
 app.get("/stats/recent", authMiddleware, async (req, res) => {
     const [rows] = await db.execute(`
-        SELECT ip, browser, city, country, created_at
+        SELECT 
+            uid,
+            ip,
+            browser,
+            city,
+            country,
+            created_at,
+            last_seen
         FROM visitors
-        ORDER BY created_at DESC
-        LIMIT 10
+        ORDER BY last_seen DESC
+        LIMIT 20
     `);
 
     res.json(rows);
