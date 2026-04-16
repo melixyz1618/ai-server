@@ -7,7 +7,7 @@ import mysql from "mysql2/promise";
 import jwt from "jsonwebtoken";
 import speakeasy from "speakeasy";
 
-const ADMIN_SECRET = "BURAYA_KAYDETTİĞİN_SECRET";
+const ADMIN_SECRET = "OY5G25ZSMFGXGMTJKZQU63R6EQRSGKLYIR3FOQL2HBIFWOCIHFAQ";
 const JWT_SECRET = "super-secret-key";
 
 
