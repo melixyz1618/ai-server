@@ -293,11 +293,17 @@ app.post("/send-mail", async (req, res) => {
 // =====================================================
 // 🔥 GET OFFERS
 // =====================================================
-app.get("/offers", async (req, res) => {
+// 🔥 GET OFFERS (SECURE)
+app.get("/offers", authMiddleware, async (req, res) => {
   try {
-    const [rows] = await db.execute("SELECT * FROM offers ORDER BY id DESC");
+    const [rows] = await db.execute(
+        "SELECT * FROM offers ORDER BY id DESC"
+    );
+
     res.json(rows);
+
   } catch (err) {
+    console.error("OFFERS ERROR:", err);
     res.status(500).json({ error: "DB error" });
   }
 });
@@ -410,6 +416,11 @@ app.put("/offers/:id", authMiddleware, async (req, res) => {
 });
 
 app.post("/track-visit", checkBlockedIP, async (req, res) => {
+	const origin = req.headers.origin;
+
+	if (!origin || !origin.includes("melihsancar.com")) {
+		return res.status(403).send("Forbidden");
+	}
     try {
         const { uid } = req.body;
 		if (!uid) {
@@ -421,6 +432,10 @@ app.post("/track-visit", checkBlockedIP, async (req, res) => {
             req.ip;
 
         const userAgent = req.headers['user-agent'];
+		
+		if (userAgent && userAgent.toLowerCase().includes("bot")) {
+			return res.json({ ignored: true });
+		}
 
         let browser = "Unknown";
         if (userAgent.includes("Chrome") && !userAgent.includes("Edg")) browser = "Chrome";
